@@ -1,22 +1,17 @@
 pipeline {
     agent any 
-    environment {
-     
-        APP_NAME = "my-project"
+   environment {
    
-        ARTIFACT_PATH = "target/${APP_NAME}.jar"
+    APP_NAME = "jenkins-test"
+   
+    ARTIFACT_PATH = "target/${APP_NAME}-*.jar"  // 匹配 target/jenkins-test-*.jar
 
-        VERSION = "1.0.${env.BUILD_NUMBER}"
-        // GitHub 仓库信息（替换为你的仓库）
-        GIT_REPO = "git@github.com:djjshuai/6666.git"
-        // Jenkins 中配置的 GitHub SSH 凭据 ID（之前日志中的 95d4aeb6-...）
-        GIT_CRED_ID = "95d4aeb6-2265-4ff7-9889-2e6cadb7afc0"
-        // 部署目标服务器（替换为你的服务器 IP 或域名）
-        DEPLOY_SERVER = "root@192.168.1.100"
-        // 部署路径（目标服务器上的目录）
-        DEPLOY_PATH = "/opt/apps"
-    }
-
+    VERSION = "1.0.${env.BUILD_NUMBER}"
+    GIT_REPO = "git@github.com:djjshuai/6666.git"
+    GIT_CRED_ID = "95d4aeb6-2265-4ff7-9889-2e6cadb7afc0"
+    DEPLOY_SERVER = "root@192.168.1.100"  // 替换为你的部署服务器
+    DEPLOY_PATH = "/opt/apps"
+}
     // 构建后操作：成功/失败都执行
     post {
         success {
@@ -55,27 +50,25 @@ pipeline {
         }
 
         // 阶段 2：编译打包
-        stage("编译打包") {
-            steps {
-                echo "开始编译，版本号：${VERSION}..."
-                // 编译并跳过测试（测试在单独阶段执行）
-                sh "mvn clean package -DskipTests -Dproject.version=${VERSION}"
-            }
-            post {
-                success {
-                    // 归档产物（在 Jenkins 中可下载）
-                    archiveArtifacts(
-                        artifacts: "${ARTIFACT_PATH}",
-                        fingerprint: true,
-                        onlyIfSuccessful: true
-                    )
-                    echo "编译成功！产物路径：${ARTIFACT_PATH}"
-                }
-                failure {
-                    error("编译失败，终止流程！")  // 失败则停止后续步骤
-                }
-            }
+       stage("编译打包") {
+    steps {
+        echo "开始编译，版本号：${VERSION}..."
+        sh "mvn clean package -DskipTests -Dproject.version=${VERSION}"
+    }
+    post {
+        success {
+            archiveArtifacts(
+                artifacts: "${ARTIFACT_PATH}",  // 使用上面定义的 ARTIFACT_PATH
+                fingerprint: true,
+                onlyIfSuccessful: true
+            )
+            echo "编译成功！产物路径：${ARTIFACT_PATH}"
         }
+        failure {
+            error("编译失败，终止流程！")
+        }
+    }
+}
 
         // 阶段 3：单元测试
         stage("单元测试") {
