@@ -20,11 +20,11 @@ pipeline {
     // 构建后操作：成功/失败都执行
     post {
         success {
-            // 成功通知（邮件/钉钉，选一种即可）
+            // 成功通知
             echo "✅ 构建成功！版本：${VERSION}"
-            // 邮件通知（需配置 Jenkins 邮件服务器，见步骤 3）
+            // 邮件通知
             emailext(
-                to: "你的邮箱@example.com",
+                to: "2313495658@qq.com",
                 subject: "[成功] ${APP_NAME} 构建 #${BUILD_NUMBER}",
                 body: "版本：${VERSION}\n详情：${BUILD_URL}"
             )
@@ -32,7 +32,7 @@ pipeline {
         failure {
             echo "❌ 构建失败！"
             emailext(
-                to: "你的邮箱@example.com",
+                to: "2313495658@qq.com",
                 subject: "[失败] ${APP_NAME} 构建 #${BUILD_NUMBER}",
                 body: "版本：${VERSION}\n详情：${BUILD_URL}"
             )
@@ -44,7 +44,7 @@ pipeline {
     }
 
     stages {
-        // 阶段 1：拉取代码（已验证成功，复用）
+        // 阶段 1：拉取代码
         stage("拉取代码") {
             steps {
                 echo "从 GitHub 拉取最新代码..."
@@ -54,7 +54,7 @@ pipeline {
             }
         }
 
-        // 阶段 2：编译打包（已验证成功，强化版本号）
+        // 阶段 2：编译打包
         stage("编译打包") {
             steps {
                 echo "开始编译，版本号：${VERSION}..."
@@ -77,7 +77,7 @@ pipeline {
             }
         }
 
-        // 阶段 3：单元测试（已验证成功，收集报告）
+        // 阶段 3：单元测试
         stage("单元测试") {
             steps {
                 echo "执行单元测试..."
@@ -85,7 +85,7 @@ pipeline {
             }
             post {
                 always {
-                    // 收集测试报告（需安装 JUnit 插件）
+                    // 收集测试报告
                     junit(
                         allowEmptyResults: true,
                         testResults: "target/surefire-reports/*.xml"
