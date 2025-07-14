@@ -9,7 +9,7 @@ pipeline {
     VERSION = "1.0.${env.BUILD_NUMBER}"
     GIT_REPO = "git@github.com:djjshuai/6666.git"
     GIT_CRED_ID = "95d4aeb6-2265-4ff7-9889-2e6cadb7afc0"
-    DEPLOY_SERVER = "root@192.168.1.100"  // 替换为你的部署服务器
+    DEPLOY_SERVER = "root@192.168.127.100"  // 替换为你的部署服务器
     DEPLOY_PATH = "/opt/apps"
 }
     // 构建后操作：成功/失败都执行
