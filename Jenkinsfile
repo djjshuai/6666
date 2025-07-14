@@ -117,7 +117,7 @@ pipeline {
             steps {
                 echo "部署 ${VERSION} 到服务器 ${DEPLOY_SERVER}..."
                 // 使用 SSH 代理执行部署命令
-                sshagent(credentials: [GIT_CRED_ID]) {
+                sshagent(credentials: [a0682bfb-c489-4ece-b201-ade94b13e1bc	]) {
                     sh """
                         # 1. 检查目标服务器部署目录，不存在则创建
                         ssh ${DEPLOY_SERVER} "mkdir -p ${DEPLOY_PATH}"
