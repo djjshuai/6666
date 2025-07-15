@@ -5,15 +5,15 @@ pipeline {
         APP_NAME = "jenkins-test"
         ARTIFACT_PATH = "target/${APP_NAME}-*.jar"
         VERSION = "1.0.${env.BUILD_NUMBER}"
-        GIT_REPO = "git@github.com:djjshuai/666.git"
+        GIT_REPO = "git@github.com:djjshuai/6666.git"
         GIT_CRED_ID = "95d4aeb6-2265-4ff7-9889-2e6cadb7afc0"
         DEPLOY_SERVER = "root@192.168.127.100"
         DEPLOY_PATH = "/opt/apps"
         EMAIL_RECIPIENTS = "2313495658@qq.com"
     }
     
-    post {  // 确保post块正确缩进
-        success {  // 确保success块正确缩进
+    post {
+        success {
             timeout(time: 5, unit: 'MINUTES') {
                 echo "✅ 构建成功！版本：${VERSION}"
                 
@@ -21,7 +21,6 @@ pipeline {
                     sh '''
                         echo "准备通过命令行发送邮件..."
                         
-                        # 生成邮件内容
                         cat > email.txt <<'EOF'
 From: "Jenkins" <2313495658@qq.com>
 To: 2313495658@qq.com
@@ -32,8 +31,6 @@ Subject: Jenkins构建成功通知
 构建详情: ${BUILD_URL}
 EOF
 
-                        # 发送邮件
-                        echo "尝试通过命令行发送邮件..."
                         (
                             echo "HELO $(hostname)"
                             echo "AUTH LOGIN"
@@ -51,9 +48,9 @@ EOF
                     '''
                 }
             }
-        }  // success块结束
+        }
         
-        failure {  // failure块正确缩进
+        failure {
             timeout(time: 5, unit: 'MINUTES') {
                 echo "❌ 构建失败！"
                 emailext(
@@ -76,14 +73,14 @@ EOF
                     """
                 )
             }
-        }  // failure块结束
+        }
         
-        always {  // always块正确缩进
+        always {
             cleanWs()
-        }  // always块结束
-    }  // post块结束
+        }
+    }
 
-     stages {
+    stages {
         stage("拉取代码") {
             steps {
                 echo "从 GitHub 拉取最新代码..."
@@ -183,5 +180,4 @@ EOF
             }
         }
     }
-}
 }
