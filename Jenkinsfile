@@ -1,84 +1,120 @@
 pipeline {
     agent any 
-   environment {
-   
-    APP_NAME = "jenkins-test"
-   
-    ARTIFACT_PATH = "target/${APP_NAME}-*.jar"  // 匹配 target/jenkins-test-*.jar
-
-    VERSION = "1.0.${env.BUILD_NUMBER}"
-    GIT_REPO = "git@github.com:djjshuai/6666.git"
-    GIT_CRED_ID = "95d4aeb6-2265-4ff7-9889-2e6cadb7afc0"
-    DEPLOY_SERVER = "root@192.168.127.100"  // 替换为你的部署服务器
-    DEPLOY_PATH = "/opt/apps"
-}
-    // 构建后操作：成功/失败都执行
+    
+    environment {
+        APP_NAME = "jenkins-test"
+        ARTIFACT_PATH = "target/${APP_NAME}-*.jar"
+        VERSION = "1.0.${env.BUILD_NUMBER}"
+        GIT_REPO = "git@github.com:djjshuai/6666.git"
+        GIT_CRED_ID = "95d4aeb6-2265-4ff7-9889-2e6cadb7afc0"
+        DEPLOY_SERVER = "root@192.168.127.100"
+        DEPLOY_PATH = "/opt/apps"
+        EMAIL_RECIPIENTS = "2313495658@qq.com"  // 定义邮件接收人变量
+    }
+    
     post {
         success {
-            // 成功通知
-            echo "✅ 构建成功！版本：${VERSION}"
-            // 邮件通知
-            emailext(
-                to: "2313495658@qq.com",
-                subject: "[成功] ${APP_NAME} 构建 #${BUILD_NUMBER}",
-                body: "版本：${VERSION}\n详情：${BUILD_URL}"
-            )
+            timeout(time: 5, unit: 'MINUTES') {
+                echo "✅ 构建成功！版本：${VERSION}"
+                emailext(
+                    to: "${EMAIL_RECIPIENTS}",
+                    subject: "[成功] ${APP_NAME} 构建 #${BUILD_NUMBER}",
+                    mimeType: 'text/html',
+                    body: """
+                        <html>
+                        <body>
+                            <h3 style="color: #22c55e;">构建成功通知</h3>
+                            <p><strong>项目：</strong>${APP_NAME}</p>
+                            <p><strong>版本：</strong>${VERSION}</p>
+                            <p><strong>构建编号：</strong>${BUILD_NUMBER}</p>
+                            <p><strong>构建状态：</strong><span style="color: #22c55e;">成功</span></p>
+                            <p><strong>触发人：</strong>${env.BUILD_USER}</p>
+                            <p><strong>构建详情：</strong><a href="${BUILD_URL}">点击查看</a></p>
+                            <p><strong>变更内容：</strong></p>
+                            <pre>${env.CHANGE_LOG}</pre>
+                        </body>
+                        </html>
+                    """,
+                    smtpServer: "smtp.qq.com",
+                    smtpPort: "465",
+                    useSSL: true,
+                    credentialsId: "qq-email-cred"  // 替换为你的邮箱凭据ID
+                )
+            }
         }
+        
         failure {
-            echo "❌ 构建失败！"
-            emailext(
-                to: "2313495658@qq.com",
-                subject: "[失败] ${APP_NAME} 构建 #${BUILD_NUMBER}",
-                body: "版本：${VERSION}\n详情：${BUILD_URL}"
-            )
+            timeout(time: 5, unit: 'MINUTES') {
+                echo "❌ 构建失败！"
+                emailext(
+                    to: "${EMAIL_RECIPIENTS}",
+                    subject: "[失败] ${APP_NAME} 构建 #${BUILD_NUMBER}",
+                    mimeType: 'text/html',
+                    body: """
+                        <html>
+                        <body>
+                            <h3 style="color: #ef4444;">构建失败通知</h3>
+                            <p><strong>项目：</strong>${APP_NAME}</p>
+                            <p><strong>版本：</strong>${VERSION}</p>
+                            <p><strong>构建编号：</strong>${BUILD_NUMBER}</p>
+                            <p><strong>构建状态：</strong><span style="color: #ef4444;">失败</span></p>
+                            <p><strong>触发人：</strong>${env.BUILD_USER}</p>
+                            <p><strong>失败原因：</strong>请查看构建日志</p>
+                            <p><strong>构建详情：</strong><a href="${BUILD_URL}console">点击查看日志</a></p>
+                            <p><strong>变更内容：</strong></p>
+                            <pre>${env.CHANGE_LOG}</pre>
+                        </body>
+                        </html>
+                    """,
+                    smtpServer: "smtp.qq.com",
+                    smtpPort: "465",
+                    useSSL: true,
+                    credentialsId: "0f8ac273-a9a9-4b1e-bbbe-01911479f954"  // 替换为你的邮箱凭据ID
+                )
+            }
         }
+        
         always {
-            // 无论成功失败，都清理工作区临时文件
             cleanWs()
         }
     }
 
     stages {
-        // 阶段 1：拉取代码
         stage("拉取代码") {
             steps {
                 echo "从 GitHub 拉取最新代码..."
-                checkout scm  // 自动拉取配置的仓库代码
-                // 打印最新提交信息，确认代码正确
+                checkout scm
                 sh "git log -1 --pretty=format:'%h - %an, %ar : %s'"
             }
         }
 
-        // 阶段 2：编译打包
-       stage("编译打包") {
-    steps {
-        echo "开始编译，版本号：${VERSION}..."
-        sh "mvn clean package -DskipTests -Dproject.version=${VERSION}"
-    }
-    post {
-        success {
-            archiveArtifacts(
-                artifacts: "${ARTIFACT_PATH}",  // 使用上面定义的 ARTIFACT_PATH
-                fingerprint: true,
-                onlyIfSuccessful: true
-            )
-            echo "编译成功！产物路径：${ARTIFACT_PATH}"
+        stage("编译打包") {
+            steps {
+                echo "开始编译，版本号：${VERSION}..."
+                sh "mvn clean package -DskipTests -Dproject.version=${VERSION}"
+            }
+            post {
+                success {
+                    archiveArtifacts(
+                        artifacts: "${ARTIFACT_PATH}",
+                        fingerprint: true,
+                        onlyIfSuccessful: true
+                    )
+                    echo "编译成功！产物路径：${ARTIFACT_PATH}"
+                }
+                failure {
+                    error("编译失败，终止流程！")
+                }
+            }
         }
-        failure {
-            error("编译失败，终止流程！")
-        }
-    }
-}
 
-        // 阶段 3：单元测试
         stage("单元测试") {
             steps {
                 echo "执行单元测试..."
-                sh "mvn test"  // 执行测试用例
+                sh "mvn test"
             }
             post {
                 always {
-                    // 收集测试报告
                     junit(
                         allowEmptyResults: true,
                         testResults: "target/surefire-reports/*.xml"
@@ -90,16 +126,14 @@ pipeline {
             }
         }
 
-        // 阶段 4：版本管理（自动打 Tag 并推送到 GitHub）
         stage("版本管理（打 Tag）") {
             steps {
                 echo "为版本 ${VERSION} 创建 Git 标签..."
-                // 配置 Git 用户名和邮箱（提交 Tag 时需要）
                 sh """
                     git config --global user.name "Jenkins"
                     git config --global user.email "jenkins@example.com"
-                    git tag -a "v${VERSION}" -m "自动打 Tag：${VERSION}"  # 创建带注释的 Tag
-                    git push origin "v${VERSION}"  # 推送到 GitHub
+                    git tag -a "v${VERSION}" -m "自动打 Tag：${VERSION}"
+                    git push origin "v${VERSION}"
                 """
             }
             post {
@@ -112,23 +146,14 @@ pipeline {
             }
         }
 
-        // 阶段 5：部署到服务器（核心新步骤）
         stage("部署到服务器") {
             steps {
                 echo "部署 ${VERSION} 到服务器 ${DEPLOY_SERVER}..."
-                // 使用 SSH 代理执行部署命令
                 sshagent(credentials: ['a0682bfb-c489-4ece-b201-ade94b13e1bc']) {
                     sh """
-                        # 1. 检查目标服务器部署目录，不存在则创建
                         ssh ${DEPLOY_SERVER} "mkdir -p ${DEPLOY_PATH}"
-                        
-                        # 2. 上传构建产物到目标服务器
                         scp ${ARTIFACT_PATH} ${DEPLOY_SERVER}:${DEPLOY_PATH}/${APP_NAME}-${VERSION}.jar
-                        
-                        # 3. 在目标服务器启动应用（以 Java 为例）
-                        # 先停止旧进程（如果存在）
                         ssh ${DEPLOY_SERVER} "ps -ef | grep ${APP_NAME} | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-                        # 启动新进程（后台运行，输出日志到文件）
                         ssh ${DEPLOY_SERVER} "nohup java -jar ${DEPLOY_PATH}/${APP_NAME}-${VERSION}.jar > ${DEPLOY_PATH}/app.log 2>&1 &"
                     """
                 }
