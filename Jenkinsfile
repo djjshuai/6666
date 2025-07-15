@@ -139,6 +139,17 @@ pipeline {
             }
         }
 
+       stage("测试SMTP网络连接") {
+    steps {
+        echo "测试能否连接QQ邮箱SMTP服务器（smtp.qq.com:465）..."
+        sh """
+            # 测试SSL连接（与测试邮件使用的端口一致）
+            openssl s_client -connect smtp.qq.com:465 -crlf << EOF
+            QUIT
+            EOF
+        """
+    }
+} 
         stage("部署到服务器") {
             steps {
                 echo "部署 ${VERSION} 到服务器 ${DEPLOY_SERVER}..."
