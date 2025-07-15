@@ -12,49 +12,48 @@ pipeline {
         EMAIL_RECIPIENTS = "2313495658@qq.com"
     }
     
-   post {
-    success {
-        timeout(time: 5, unit: 'MINUTES') {
-            echo "✅ 构建成功！版本：${VERSION}"
-            
-            withCredentials([string(credentialsId: '0f8ac273-a9a9-4b1e-bbbe-01911479f954', variable: 'EMAIL_AUTH_CODE')]) {
-                sh '''
-                    # 使用 openssl s_client 手动发送邮件
-                    echo "准备通过命令行发送邮件..."
-                    
-                    cat > email.txt <<EOF
-                    From: "Jenkins" <2313495658@qq.com>
-                    To: 2313495658@qq.com
-                    Subject: Jenkins构建成功通知
-                    
-                    项目 ${JOB_NAME} 构建成功！
-                    版本: ${VERSION}
-                    构建详情: ${BUILD_URL}
-                    EOF
-                    
-                    # 使用 openssl 连接 SMTP 服务器并发送邮件
-                    echo "尝试通过命令行发送邮件..."
-                    (
-                        echo "HELO jenkins.example.com"
-                        echo "AUTH LOGIN"
-                        echo "$(echo -n "2313495658@qq.com" | base64)"  # 邮箱地址 Base64 编码
-                        echo "$(echo -n "${EMAIL_AUTH_CODE}" | base64)"   # 授权码 Base64 编码
-                        echo "MAIL FROM: <2313495658@qq.com>"
-                        echo "RCPT TO: <2313495658@qq.com>"
-                        echo "DATA"
-                        cat email.txt
-                        echo "."
-                        echo "QUIT"
-                    ) | openssl s_client -connect smtp.qq.com:465 -quiet
-                    
-                    echo "命令行邮件发送尝试完成"
-                '''
+    post {  // post 块包含所有后续子块（success/failure/always）
+        success {
+            timeout(time: 5, unit: 'MINUTES') {
+                echo "✅ 构建成功！版本：${VERSION}"
+                
+                withCredentials([string(credentialsId: '0f8ac273-a9a9-4b1e-bbbe-01911479f954', variable: 'EMAIL_AUTH_CODE')]) {
+                    sh '''
+                        # 使用 openssl s_client 手动发送邮件
+                        echo "准备通过命令行发送邮件..."
+                        
+                        cat > email.txt <<EOF
+                        From: "Jenkins" <2313495658@qq.com>
+                        To: 2313495658@qq.com
+                        Subject: Jenkins构建成功通知
+                        
+                        项目 ${JOB_NAME} 构建成功！
+                        版本: ${VERSION}
+                        构建详情: ${BUILD_URL}
+                        EOF
+                        
+                        # 使用 openssl 连接 SMTP 服务器并发送邮件
+                        echo "尝试通过命令行发送邮件..."
+                        (
+                            echo "HELO jenkins.example.com"
+                            echo "AUTH LOGIN"
+                            echo "$(echo -n "2313495658@qq.com" | base64)"  # 邮箱地址 Base64 编码
+                            echo "$(echo -n "${EMAIL_AUTH_CODE}" | base64)"   # 授权码 Base64 编码
+                            echo "MAIL FROM: <2313495658@qq.com>"
+                            echo "RCPT TO: <2313495658@qq.com>"
+                            echo "DATA"
+                            cat email.txt
+                            echo "."
+                            echo "QUIT"
+                        ) | openssl s_client -connect smtp.qq.com:465 -quiet
+                        
+                        echo "命令行邮件发送尝试完成"
+                    '''
+                }
             }
-        }
-    }
-}
+        }  // success 块结束
         
-        failure {
+        failure {  // failure 是 post 的子块，正确嵌套
             timeout(time: 5, unit: 'MINUTES') {
                 echo "❌ 构建失败！"
                 emailext(
@@ -72,19 +71,17 @@ pipeline {
                             <p><strong>触发人：</strong>${env.BUILD_USER}</p>
                             <p><strong>失败原因：</strong>请查看构建日志</p>
                             <p><strong>构建详情：</strong><a href="${BUILD_URL}console">点击查看日志</a></p>
-                            <p><strong>变更内容：</strong></p>
-                            <pre>${env.CHANGE_LOG}</pre>
                         </body>
                         </html>
                     """
                 )
             }
-        }
+        }  // failure 块结束
         
-        always {
+        always {  // always 是 post 的子块，正确嵌套
             cleanWs()
-        }
-    }
+        }  // always 块结束
+    }  // post 块整体结束
 
 
     stages {
@@ -154,17 +151,17 @@ pipeline {
             }
         }
 
-       stage("测试SMTP网络连接") {
-    steps {
-        echo "测试能否连接QQ邮箱SMTP服务器（smtp.qq.com:465）..."
-        sh """
-            # 测试SSL连接（与测试邮件使用的端口一致）
-            openssl s_client -connect smtp.qq.com:465 -crlf << EOF
-            QUIT
-            EOF
-        """
-    }
-} 
+        stage("测试SMTP网络连接") {
+            steps {
+                echo "测试能否连接QQ邮箱SMTP服务器（smtp.qq.com:465）..."
+                sh """
+                    openssl s_client -connect smtp.qq.com:465 -crlf << EOF
+                    QUIT
+                    EOF
+                """
+            }
+        } 
+
         stage("部署到服务器") {
             steps {
                 echo "部署 ${VERSION} 到服务器 ${DEPLOY_SERVER}..."
