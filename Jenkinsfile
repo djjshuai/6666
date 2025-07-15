@@ -9,7 +9,7 @@ pipeline {
         GIT_CRED_ID = "95d4aeb6-2265-4ff7-9889-2e6cadb7afc0"
         DEPLOY_SERVER = "root@192.168.127.100"
         DEPLOY_PATH = "/opt/apps"
-        EMAIL_RECIPIENTS = "2313495658@qq.com"  // 定义邮件接收人变量
+        EMAIL_RECIPIENTS = "2313495658@qq.com"
     }
     
     post {
@@ -34,11 +34,7 @@ pipeline {
                             <pre>${env.CHANGE_LOG}</pre>
                         </body>
                         </html>
-                    """,
-                    smtpServer: "smtp.qq.com",
-                    smtpPort: "465",
-                    useSSL: true,
-                    credentialsId: "qq-email-cred"  // 替换为你的邮箱凭据ID
+                    """
                 )
             }
         }
@@ -65,11 +61,7 @@ pipeline {
                             <pre>${env.CHANGE_LOG}</pre>
                         </body>
                         </html>
-                    """,
-                    smtpServer: "smtp.qq.com",
-                    smtpPort: "465",
-                    useSSL: true,
-                    credentialsId: "0f8ac273-a9a9-4b1e-bbbe-01911479f954"  // 替换为你的邮箱凭据ID
+                    """
                 )
             }
         }
@@ -78,6 +70,7 @@ pipeline {
             cleanWs()
         }
     }
+
 
     stages {
         stage("拉取代码") {
