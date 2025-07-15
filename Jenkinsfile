@@ -22,7 +22,8 @@ pipeline {
                         # 使用 openssl s_client 手动发送邮件
                         echo "准备通过命令行发送邮件..."
                         
-                        cat > email.txt <<EOF
+                        # 修改了EOF格式，使用单引号包围EOF防止变量提前展开
+                        cat > email.txt <<'EOF'
                         From: "Jenkins" <2313495658@qq.com>
                         To: 2313495658@qq.com
                         Subject: Jenkins构建成功通知
