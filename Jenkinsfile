@@ -17,7 +17,7 @@ pipeline {
         timeout(time: 5, unit: 'MINUTES') {
             echo "✅ 构建成功！版本：${VERSION}"
             
-            withCredentials([string(credentialsId: 'qq-email-auth-code', variable: 'EMAIL_AUTH_CODE')]) {
+            withCredentials([string(credentialsId: '0f8ac273-a9a9-4b1e-bbbe-01911479f954', variable: 'EMAIL_AUTH_CODE')]) {
                 sh '''
                     # 使用 openssl s_client 手动发送邮件
                     echo "准备通过命令行发送邮件..."
