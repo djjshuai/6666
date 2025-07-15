@@ -22,17 +22,17 @@ pipeline {
                         # 使用 openssl s_client 手动发送邮件
                         echo "准备通过命令行发送邮件..."
                         
-                        # 修改了EOF格式，使用单引号包围EOF防止变量提前展开
+                        # 修正EOF格式：确保EOF前后无空格，且单独成行
                         cat > email.txt <<'EOF'
-                        From: "Jenkins" <2313495658@qq.com>
-                        To: 2313495658@qq.com
-                        Subject: Jenkins构建成功通知
-                        
-                        项目 ${JOB_NAME} 构建成功！
-                        版本: ${VERSION}
-                        构建详情: ${BUILD_URL}
-                        EOF
-                        
+From: "Jenkins" <2313495658@qq.com>
+To: 2313495658@qq.com
+Subject: Jenkins构建成功通知
+
+项目 ${JOB_NAME} 构建成功！
+版本: ${VERSION}
+构建详情: ${BUILD_URL}
+EOF
+
                         # 使用 openssl 连接 SMTP 服务器并发送邮件
                         echo "尝试通过命令行发送邮件..."
                         (
