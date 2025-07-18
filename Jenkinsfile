@@ -92,16 +92,6 @@ pipeline {
             }
         }
 
-        stage("测试SMTP网络连接") {
-            steps {
-                echo "测试能否连接QQ邮箱SMTP服务器（smtp.qq.com:465）..."
-                sh """
-                    openssl s_client -connect smtp.qq.com:465 -crlf << EOF
-                    QUIT
-                    EOF
-                """
-            }
-        } 
 
         stage("部署到服务器") {
             steps {
