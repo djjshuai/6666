@@ -1,5 +1,3 @@
 # 6666,123456
 sheji
-hhhh
-skljlwkklr
-szdghkjd
+66666
